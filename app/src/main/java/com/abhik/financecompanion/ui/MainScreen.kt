@@ -76,7 +76,7 @@ fun MainScreen(viewModel: FinanceViewModel) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.Dashboard.route) {
-                DashboardScreen(viewModel)
+                Dashboard(viewModel)
             }
             composable(BottomNavItem.Transactions.route) {
                 TransactionsScreen(viewModel)
@@ -88,12 +88,12 @@ fun MainScreen(viewModel: FinanceViewModel) {
     }
 }
 
-@Composable
-fun DashboardScreen(viewModel: FinanceViewModel) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Dashboard Screen Coming Soon!")
-    }
-}
+//@Composable
+//fun DashboardScreen(viewModel: FinanceViewModel) {
+//    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//        Text("Dashboard Screen Coming Soon!")
+//    }
+//}
 
 @Composable
 fun TransactionsScreen(viewModel: FinanceViewModel) {
