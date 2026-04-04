@@ -3,12 +3,14 @@ package com.abhik.financecompanion.ui
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image // Added
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource // Added
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,38 +34,51 @@ fun LoginScreen(onLoginSuccess: (FirebaseUser) -> Unit) {
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
+    ){ result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
+            try{
                 val account = task.getResult(ApiException::class.java)!!
                 val idToken = account.idToken
+
                 if (idToken != null) {
                     val credential = GoogleAuthProvider.getCredential(idToken, null)
                     coroutineScope.launch {
                         try {
                             val authResult = FirebaseAuth.getInstance().signInWithCredential(credential).await()
                             authResult.user?.let { onLoginSuccess(it) }
-                        } catch (e: Exception) {
+                        }
+                        catch (e: Exception) {
                             errorMessage = e.localizedMessage
                             isLoading = false
                         }
                     }
-                } else {
+                }
+                else{
                     errorMessage = "Google Sign-In failed: No ID Token found."
                     isLoading = false
                 }
-            } catch (e: ApiException) {
+            }
+            catch (e: ApiException) {
                 errorMessage = "Google Sign-In failed. Did you add your SHA-1 key to Firebase?"
                 isLoading = false
             }
-        } else {
+        }
+        else{
             isLoading = false
         }
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Image(
+                painter = painterResource(id = R.drawable.finance_app_icon),
+                contentDescription = "App Logo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(bottom = 16.dp)
+            )
             Text(
                 text = "Finance Companion",
                 style = MaterialTheme.typography.headlineLarge,
