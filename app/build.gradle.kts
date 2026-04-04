@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("com.google.devtools.ksp") version "2.0.0-1.0.24"
+
+    //id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -12,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.abhik.financecompanion"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -69,4 +72,10 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.compose.material:material-icons-extended")
+
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }

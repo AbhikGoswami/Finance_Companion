@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "347695437346",
+    "project_id": "finance-companion-app",
+    "storage_bucket": "finance-companion-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347695437346:android:d1f47fd9b2f322df259c7b",
+        "android_client_info": {
+          "package_name": "com.abhik.financecompanion"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347695437346-rk85cp7pumb54lpj12it9eot28l61jv6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.abhik.financecompanion",
+            "certificate_hash": "3e9f1b4e22ede0b1c67a9ad542c1d0f0e765bc81"
+          }
+        },
+        {
+          "client_id": "347695437346-pd9246s3gp1u290d1tk4qe8gkbacgd57.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDo0cF27tdPOW5UR2hmRdF9WZUfhRaMy5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347695437346-pd9246s3gp1u290d1tk4qe8gkbacgd57.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
