@@ -45,7 +45,8 @@ fun TransactionsScreen(viewModel: FinanceViewModel) {
 
     val filteredTransactions = if (searchQuery.isBlank()) {
         allTransactions
-    } else {
+    }
+    else {
         allTransactions.filter {
             it.category.contains(searchQuery, ignoreCase = true) ||
                     it.note.contains(searchQuery, ignoreCase = true) ||
@@ -139,7 +140,8 @@ fun TransactionsScreen(viewModel: FinanceViewModel) {
                         )
                     }
                 }
-            } else if (filteredTransactions.isEmpty()) {
+            }
+            else if (filteredTransactions.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -150,7 +152,8 @@ fun TransactionsScreen(viewModel: FinanceViewModel) {
                         fontSize = 16.sp
                     )
                 }
-            } else {
+            }
+            else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
