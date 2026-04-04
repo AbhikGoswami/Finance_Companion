@@ -1,43 +1,31 @@
 package com.abhik.financecompanion.ui
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import com.abhik.financecompanion.viewmodel.FinanceViewModel
 import kotlinx.coroutines.launch
-
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
+
+
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.CloudUpload
 
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : BottomNavItem("dashboard", "Dashboard", Icons.Default.Home)
@@ -54,7 +42,6 @@ fun MainScreen(
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val transactions by viewModel.transactions.collectAsState()
@@ -67,16 +54,13 @@ fun MainScreen(
                 try {
                     context.contentResolver.openOutputStream(it)?.use { outputStream ->
                         val writer = outputStream.bufferedWriter()
-
                         writer.write("Amount,Type,Category,Note,Date\n")
-
                         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
                         transactions.forEach { txn ->
                             val dateStr = dateFormat.format(Date(txn.timestamp))
                             val cleanCategory = txn.category.replace(",", " ")
                             val cleanNote = txn.note.replace(",", " ")
-
                             writer.write("${txn.amount},${txn.type},${cleanCategory},${cleanNote},${dateStr}\n")
                         }
                         writer.flush()
@@ -89,8 +73,6 @@ fun MainScreen(
         }
     }
 
-    val scope = rememberCoroutineScope()
-
     val items = listOf(
         BottomNavItem.Dashboard,
         BottomNavItem.Transactions,
@@ -100,62 +82,91 @@ fun MainScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet ((Modifier.width(280.dp))){
-                Spacer(modifier = Modifier.height(32.dp))
+            ModalDrawerSheet(modifier = Modifier.width(300.dp)) {
 
+                Spacer(modifier = Modifier.height(32.dp))
                 Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
                     Icon(
-                        imageVector = Icons.Default.Person,
+                        imageVector = Icons.Default.AccountCircle,
                         contentDescription = "Profile Icon",
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "My Profile", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(text = userEmail, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Welcome back,", fontSize = 14.sp, color = Color.Gray)
+                    Text(text = userEmail, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.Download, contentDescription = null) },
+                    label = { Text("Export to CSV") },
+                    selected = false,
+                    onClick = {
+                        coroutineScope.launch { drawerState.close() }
+                        exportLauncher.launch("Finance_Report_${System.currentTimeMillis()}.csv")
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text(
+                    "App Settings",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(start = 28.dp, top = 8.dp, bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                val bioEnabled by viewModel.isBiometricEnabled.collectAsState()
+
+                NavigationDrawerItem(
+                    label = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Biometric Lock")
+                            Switch(
+                                checked = bioEnabled,
+                                onCheckedChange = { viewModel.toggleBiometric(it) }
+                            )
+                        }
+                    },
+                    icon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                    selected = false,
+                    onClick = { /* Toggle handled by Switch */ },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
                 NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Profile Settings") },
+                    label = { Text("Backup to Cloud") },
+                    icon = { Icon(Icons.Filled.CloudUpload, contentDescription = null) },
                     selected = false,
                     onClick = {
-                        scope.launch { drawerState.close() }
+                        coroutineScope.launch { drawerState.close() }
+                        val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                        if (user != null) {
+                            // UPDATED: Now passing context to show Toasts
+                            viewModel.syncDataToCloud(user.uid, context)
+                        } else {
+                            Toast.makeText(context, "Log in to use Cloud Backup", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp) ,
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-
                 NavigationDrawerItem(
-                    label = { Text("Export to CSV") },
-                    icon = { Icon(Icons.Default.Download, contentDescription = "Export") },
+                    icon = { Icon(Icons.Default.Logout, contentDescription = null, tint = Color.Red) },
+                    label = { Text("Sign Out", color = Color.Red) },
                     selected = false,
                     onClick = {
                         coroutineScope.launch { drawerState.close() }
-                        exportLauncher.launch("Finance_Transactions.csv")
-                    },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                )
-
-                NavigationDrawerItem(
-                    icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) },
-                    label = { Text("Sign Out") },
-                    selected = false,
-                    onClick = {
-                        scope.launch { drawerState.close() }
                         onSignOut()
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding).padding(bottom = 24.dp)
@@ -163,19 +174,15 @@ fun MainScreen(
             }
         }
     ) {
-
         Scaffold(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = { Text("Finance Companion", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
                             Icon(Icons.Default.Menu, contentDescription = "Open Menu")
                         }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    )
+                    }
                 )
             },
             bottomBar = {

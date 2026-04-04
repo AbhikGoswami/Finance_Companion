@@ -1,14 +1,19 @@
 package com.abhik.financecompanion.viewmodel
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.abhik.financecompanion.data.Transaction
 import com.abhik.financecompanion.data.TransactionRepo
+import com.google.firebase.firestore.ktx.firestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -89,6 +94,42 @@ class FinanceViewModel(
 
         val diffMillis = today - lastExpenseDate
         return (diffMillis / (1000 * 60 * 60 * 24)).toInt()
+    }
+
+    private val _isBiometricEnabled = MutableStateFlow(prefs.getBoolean("biometric_enabled", false))
+    val isBiometricEnabled = _isBiometricEnabled.asStateFlow()
+
+    fun toggleBiometric(enabled: Boolean) {
+        prefs.edit().putBoolean("biometric_enabled", enabled).apply()
+        _isBiometricEnabled.value = enabled
+    }
+
+    fun syncDataToCloud(userId: String, context: Context) {
+        val db = com.google.firebase.ktx.Firebase.firestore
+        val transactionsList = transactions.value
+
+
+        if (transactionsList.isEmpty()) {
+            Toast.makeText(context, "No transactions found to backup!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val batch = db.batch()
+        transactionsList.forEach { txn ->
+            val docRef = db.collection("users").document(userId)
+                .collection("transactions").document(txn.id.toString())
+            batch.set(docRef, txn)
+        }
+
+        batch.commit()
+            .addOnSuccessListener {
+                Toast.makeText(context, "Backup Successful! ✅", Toast.LENGTH_SHORT).show()
+                Log.d("FirebaseSync", "Successfully synced ${transactionsList.size} items")
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(context, "Backup Failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                Log.e("FirebaseSync", "Sync Error", e)
+            }
     }
 }
 
