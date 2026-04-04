@@ -27,6 +27,18 @@ import androidx.navigation.compose.rememberNavController
 import com.abhik.financecompanion.viewmodel.FinanceViewModel
 import kotlinx.coroutines.launch
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
     object Dashboard : BottomNavItem("dashboard", "Dashboard", Icons.Default.Home)
     object Transactions : BottomNavItem("transactions", "Transactions", Icons.Default.List)
@@ -42,6 +54,41 @@ fun MainScreen(
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val transactions by viewModel.transactions.collectAsState()
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                try {
+                    context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                        val writer = outputStream.bufferedWriter()
+
+                        writer.write("Amount,Type,Category,Note,Date\n")
+
+                        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+
+                        transactions.forEach { txn ->
+                            val dateStr = dateFormat.format(Date(txn.timestamp))
+                            val cleanCategory = txn.category.replace(",", " ")
+                            val cleanNote = txn.note.replace(",", " ")
+
+                            writer.write("${txn.amount},${txn.type},${cleanCategory},${cleanNote},${dateStr}\n")
+                        }
+                        writer.flush()
+                    }
+                    Toast.makeText(context, "Data exported successfully!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Export failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     val scope = rememberCoroutineScope()
 
     val items = listOf(
@@ -80,12 +127,28 @@ fun MainScreen(
                     selected = false,
                     onClick = {
                         scope.launch { drawerState.close() }
-                        // TODO: Navigate to full profile screen if needed
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp) ,
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
+
+                NavigationDrawerItem(
+                    label = { Text("Export to CSV") },
+                    icon = { Icon(Icons.Default.Download, contentDescription = "Export") },
+                    selected = false,
+                    onClick = {
+                        coroutineScope.launch { drawerState.close() }
+                        exportLauncher.launch("Finance_Transactions.csv")
+                    },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
 
                 NavigationDrawerItem(
                     icon = { Icon(Icons.Default.ExitToApp, contentDescription = null) },

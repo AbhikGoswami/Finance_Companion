@@ -63,7 +63,7 @@ fun Dashboard(viewModel: FinanceViewModel) {
         else -> Color(0xFFF44336)
     }
 
-    val pastMonths = (0..5).map { YearMonth.now().minusMonths(it.toLong()) }.reversed()
+    val pastMonths = (0..5).map { YearMonth.now().minusMonths(it.toLong()) }
 
     Box(
         modifier = Modifier
