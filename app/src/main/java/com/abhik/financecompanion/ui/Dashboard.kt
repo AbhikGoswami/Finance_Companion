@@ -1,7 +1,9 @@
 package com.abhik.financecompanion.ui
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,15 +18,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.abhik.financecompanion.R
 import com.abhik.financecompanion.viewmodel.FinanceViewModel
 import java.text.NumberFormat
 import java.time.YearMonth
@@ -40,17 +48,9 @@ fun Dashboard(viewModel: FinanceViewModel) {
     val monthlyBudget by viewModel.monthlyBudget.collectAsState()
     val selectedMonth by viewModel.selectedMonth.collectAsState()
 
-    var showAddSheet by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf(false)
-    }
-
-    var showBudgetDialog by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf(false)
-    }
-
-    var budgetInput by androidx.compose.runtime.remember {
-        androidx.compose.runtime.mutableStateOf("")
-    }
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showBudgetDialog by remember { mutableStateOf(false) }
+    var budgetInput by remember { mutableStateOf("") }
 
     val currentBalance = totalIncome - totalExpense
     val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
@@ -65,7 +65,14 @@ fun Dashboard(viewModel: FinanceViewModel) {
 
     val pastMonths = (0..5).map { YearMonth.now().minusMonths(it.toLong()) }.reversed()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .paint(
+                painter = painterResource(id = R.drawable.backgroundimg),
+                contentScale = ContentScale.Crop
+            )
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,12 +97,18 @@ fun Dashboard(viewModel: FinanceViewModel) {
                         val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
                         val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
+                        val interactionSource = remember { MutableInteractionSource() }
+
                         Box(
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(CircleShape)
                                 .background(backgroundColor)
-                                .clickable { viewModel.updateSelectedMonth(month) },
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = LocalIndication.current,
+                                    onClick = { viewModel.updateSelectedMonth(month) }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -213,7 +226,8 @@ fun Dashboard(viewModel: FinanceViewModel) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = "Edit Budget",
-                            tint = Color.Gray
+                            tint = Color.Black
+
                         )
                     }
                 }
@@ -235,7 +249,7 @@ fun Dashboard(viewModel: FinanceViewModel) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text("Spent: ${currencyFormatter.format(totalExpense)}", fontWeight = FontWeight.SemiBold)
-                            Text("Limit: ${currencyFormatter.format(monthlyBudget)}", color = Color.Gray)
+                            Text("Limit: ${currencyFormatter.format(monthlyBudget)}", color = Color.Red)
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))

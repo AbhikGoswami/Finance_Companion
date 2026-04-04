@@ -18,10 +18,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.abhik.financecompanion.R
 import com.abhik.financecompanion.data.Transaction
 import com.abhik.financecompanion.viewmodel.FinanceViewModel
 import java.text.NumberFormat
@@ -53,116 +57,129 @@ fun TransactionsScreen(viewModel: FinanceViewModel) {
         YearMonth.from(Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()))
     }.toSortedMap(compareByDescending { it })
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .paint(
+                painter = painterResource(id = R.drawable.backgroundimg),
+                contentScale = ContentScale.Crop
+            )
     ) {
-        Text(
-            text = "Transaction History",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            placeholder = { Text("Search category, note, or amount...") },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search Icon",
-                    tint = Color.Gray
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Transaction History",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                placeholder = { Text("Search category, note, or amount...") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search Icon",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear Search",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                 )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
+            )
+
+            if(allTransactions.isEmpty()){
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear Search",
+                            imageVector = Icons.Default.Receipt,
+                            contentDescription = "No Transactions",
+                            modifier = Modifier.size(64.dp),
                             tint = Color.Gray
                         )
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
-                focusedBorderColor = MaterialTheme.colorScheme.primary
-            )
-        )
-
-        if(allTransactions.isEmpty()){
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Receipt,
-                        contentDescription = "No Transactions",
-                        modifier = Modifier.size(64.dp),
-                        tint = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "No transactions yet.",
-                        color = Color.Gray,
-                        fontSize = 18.sp
-                    )
-                    Text(
-                        text = "Add one from the Dashboard!",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-            }
-        } else if (filteredTransactions.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No results found for \"$searchQuery\"",
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                groupedTransactions.forEach { (month, monthTransactions) ->
-                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${month.year}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                            text = "No transactions yet.",
+                            color = Color.Gray,
+                            fontSize = 18.sp
                         )
-                    }
-
-                    items(
-                        items = monthTransactions,
-                        key = { it.id }
-                    ) { transaction ->
-                        TransactionItem(
-                            transaction = transaction,
-                            onDelete = { viewModel.deleteTransaction(transaction) }
+                        Text(
+                            text = "Add one from the Dashboard!",
+                            color = Color.Gray,
+                            fontSize = 14.sp
                         )
                     }
                 }
+            } else if (filteredTransactions.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No results found for \"$searchQuery\"",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    groupedTransactions.forEach { (month, monthTransactions) ->
+                        item {
+                            Text(
+                                text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${month.year}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                            )
+                        }
 
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                        items(
+                            items = monthTransactions,
+                            key = { it.id }
+                        ) { transaction ->
+                            TransactionItem(
+                                transaction = transaction,
+                                onDelete = { viewModel.deleteTransaction(transaction) }
+                            )
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
+                    }
                 }
             }
         }
