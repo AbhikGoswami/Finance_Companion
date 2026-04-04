@@ -138,7 +138,7 @@ fun MainScreen(
                     },
                     icon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                     selected = false,
-                    onClick = { /* Toggle handled by Switch */ },
+                    onClick = { },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                 )
 
@@ -148,12 +148,15 @@ fun MainScreen(
                     selected = false,
                     onClick = {
                         coroutineScope.launch { drawerState.close() }
-                        val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                        val user = auth.currentUser
+
                         if (user != null) {
-                            // UPDATED: Now passing context to show Toasts
                             viewModel.syncDataToCloud(user.uid, context)
-                        } else {
-                            Toast.makeText(context, "Log in to use Cloud Backup", Toast.LENGTH_SHORT).show()
+                        }
+                        else {
+
+                            android.widget.Toast.makeText(context, "Error: You are not logged in!", android.widget.Toast.LENGTH_LONG).show()
                         }
                     },
                     modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)

@@ -52,13 +52,11 @@ class FinanceViewModel(
         calculateStreak(list)
     }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
-    // Read the saved budget from SharedPreferences when the app opens. Defaults to 2000.0 if empty.
     private val _monthlyBudget = MutableStateFlow(prefs.getFloat("monthly_budget", 2000f).toDouble())
     val monthlyBudget: StateFlow<Double> = _monthlyBudget
 
     fun updateMonthlyBudget(newBudget: Double) {
         _monthlyBudget.value = newBudget
-        // Save the new budget permanently to the device
         prefs.edit().putFloat("monthly_budget", newBudget.toFloat()).apply()
     }
 
@@ -104,32 +102,39 @@ class FinanceViewModel(
         _isBiometricEnabled.value = enabled
     }
 
-    fun syncDataToCloud(userId: String, context: Context) {
-        val db = com.google.firebase.ktx.Firebase.firestore
+    fun syncDataToCloud(userId: String, context: android.content.Context) {
+
+        android.widget.Toast.makeText(context, "Sync Started...", android.widget.Toast.LENGTH_SHORT).show()
+
         val transactionsList = transactions.value
 
-
         if (transactionsList.isEmpty()) {
-            Toast.makeText(context, "No transactions found to backup!", Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, "Error: Your local database is empty!", android.widget.Toast.LENGTH_LONG).show()
             return
         }
 
-        val batch = db.batch()
-        transactionsList.forEach { txn ->
-            val docRef = db.collection("users").document(userId)
-                .collection("transactions").document(txn.id.toString())
-            batch.set(docRef, txn)
-        }
+        try {
+            val db = com.google.firebase.ktx.Firebase.firestore
+            val batch = db.batch()
 
-        batch.commit()
-            .addOnSuccessListener {
-                Toast.makeText(context, "Backup Successful! ✅", Toast.LENGTH_SHORT).show()
-                Log.d("FirebaseSync", "Successfully synced ${transactionsList.size} items")
+            transactionsList.forEach { txn ->
+                val docRef = db.collection("users").document(userId)
+                    .collection("transactions").document(txn.id.toString())
+                batch.set(docRef, txn)
             }
-            .addOnFailureListener { e ->
-                Toast.makeText(context, "Backup Failed: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                Log.e("FirebaseSync", "Sync Error", e)
-            }
+
+            batch.commit()
+                .addOnSuccessListener {
+                    android.widget.Toast.makeText(context, "Cloud Sync Successful! ✅", android.widget.Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    android.widget.Toast.makeText(context, "Firebase Error: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+                    android.util.Log.e("CloudSync", "Firestore Error", e)
+                }
+        } catch (e: Exception) {
+            android.widget.Toast.makeText(context, "System Crash: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+            android.util.Log.e("CloudSync", "Critical Crash", e)
+        }
     }
 }
 
