@@ -53,7 +53,9 @@ fun Dashboard(viewModel: FinanceViewModel) {
     var budgetInput by remember { mutableStateOf("") }
 
     val currentBalance = totalIncome - totalExpense
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+    val currencyFormatter = remember {
+        NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    }
 
     val budgetProgress = if (monthlyBudget > 0) (totalExpense / monthlyBudget).toFloat().coerceIn(0f, 1f) else 0f
 

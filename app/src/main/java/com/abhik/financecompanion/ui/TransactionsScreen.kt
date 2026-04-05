@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -191,7 +192,9 @@ fun TransactionsScreen(viewModel: FinanceViewModel) {
 
 @Composable
 fun TransactionItem(transaction: Transaction, onDelete: () -> Unit) {
-    val currencyFormatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+    val currencyFormatter = remember {
+        NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+    }
     val dateFormatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     val formattedDate = dateFormatter.format(Date(transaction.timestamp))
 
