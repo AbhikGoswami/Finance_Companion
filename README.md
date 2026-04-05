@@ -70,4 +70,18 @@ The app features a modern **Material 3** aesthetic with several custom-built vis
 
 ---
 
+## 📸 App Showcase
+
+<p align="center">
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990305.jpg?raw=true.png" width="20%" />
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990113.jpg?raw=true.png" width="20%" />
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990257.jpg?raw=true.png" width="20%"/>
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990211.jpg?raw=true.png" width="20%"  />
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990052.jpg?raw=true.png" width="20%"  />
+  <img src="https://github.com/AbhikGoswami/Finance_Companion/blob/master/1775365990162.jpg?raw=true.png" width="20%"  />
+   
+</p>
+
+---
+
 **Developed with ❤️ by Abhik**
